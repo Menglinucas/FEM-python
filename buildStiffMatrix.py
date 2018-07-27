@@ -11,14 +11,12 @@ def triShapeFunc(nodes,tri):
 	# n1 = [a1/area/2.0, b1/area/2.0, c1/area/2.0] # n1 = L1 = (a1*x+b1*y+c1)/2/area
 	# n2 = [a2/area/2.0, b2/area/2.0, c2/area/2.0] # n2 = L2 = (a2*x+b2*y+c2)/2/area
 	# n3 = [a3/area/2.0, b3/area/2.0, c3/area/2.0] # n3 = L3 = (a3*x+b3*y+c3)/2/area
+	# in postprocess: u = n1u1 + n2u2 + n3u3
 	return x1,x2,x3,y1,y2,y3,a1,a2,a3,b1,b2,b3,c1,c2,c3,delta
 
-# elementary stiffness
-def eleStiff(nodes,tri,bds,bd23Nodes,eleK,eleAlpha,eleBeita,eleMiu,eleMiuW,eleVx,eleVy,Q): 
-	x1,x2,x3,y1,y2,y3,a1,a2,a3,b1,b2,b3,c1,c2,c3,delta = triShapeFunc(nodes,tri)
-	x = [x1,x2,x3]; y = [y1,y2,y3]
+def triParams(nodes, bd23Nodes, tri, bds):
 	# whether containing a second or third boundary
-	isB = []; notB = []
+	isB = []; notB = []; eleAlpha = 0.; eleBeita = 0.
 	for i in range(len(tri)):
 		if tri[i] in bd23Nodes:
 			isB.append(i)
@@ -26,6 +24,13 @@ def eleStiff(nodes,tri,bds,bd23Nodes,eleK,eleAlpha,eleBeita,eleMiu,eleMiuW,eleVx
 			notB.append(i)
 	if (len(isB)==2 and set(tri[isB]).issubset(bds['bd2']['bdNode21'])):
 		eleAlpha = bds['bd2']['bdq21'][0]; eleBeita = bds['bd2']['bdq21'][1]
+	return isB, notB, eleAlpha, eleBeita
+	
+# elementary stiffness
+def eleStiff(nodes,tri,bds,bd23Nodes,eleK,eleMiu,eleMiuW,eleVx,eleVy,Q): 
+	x1,x2,x3,y1,y2,y3,a1,a2,a3,b1,b2,b3,c1,c2,c3,delta = triShapeFunc(nodes,tri)
+	x = [x1,x2,x3]; y = [y1,y2,y3]	
+	isB, notB, eleAlpha, eleBeita = triParams(nodes, bd23Nodes, tri, bds)
 	# K
 	ke1 = eleK/4./delta*np.array([[a1*a1+b1*b1, a1*a2+b1*b2, a1*a3+b1*b3],
 									[a2*a1+b2*b1, a2*a2+b2*b2, a2*a3+b2*b3],
@@ -55,13 +60,13 @@ def eleStiff(nodes,tri,bds,bd23Nodes,eleK,eleAlpha,eleBeita,eleMiu,eleMiuW,eleVx
 	return ke,ge,pe
 
 # total stiffness
-def tolStiff(nodes,tris,bds,kappa,alpha,beita,miu,miuW,vx,vy,Q):
+def tolStiff(nodes,tris,bds,kappa,miu,miuW,vx,vy,Q):
 	length = len(nodes)
 	bd23Nodes = np.hstack((bds['bd2']['bdNode21'])) # nodes in the second and third boundaries
 	ktol = np.zeros((length,length))
 	ptol = np.zeros((length,1))
 	for tri in tris:
-		ke,ge,pe = eleStiff(nodes,tri,bds,bd23Nodes,kappa,alpha,beita,miu,miuW,vx,vy,Q)
+		ke,ge,pe = eleStiff(nodes,tri,bds,bd23Nodes,kappa,miu,miuW,vx,vy,Q)
 		ktol[tri[0],tri[0]] = ktol[tri[0],tri[0]]+ke[0,0]
 		ktol[tri[0],tri[1]] = ktol[tri[0],tri[1]]+ke[0,1]
 		ktol[tri[0],tri[2]] = ktol[tri[0],tri[2]]+ke[0,2]
