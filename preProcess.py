@@ -19,30 +19,38 @@ def setModelByCommand(meshPath='theMesh/theMesh.msh'):
 	geom = pg.built_in.Geometry()
 	# add point
 	pts = {}
-	pts[0] = geom.add_point([0,0,0],lcar=1)
-	pts[1] = geom.add_point([10,0,0],lcar=1)
-	pts[2] = geom.add_point([10,10,0],lcar=1)
-	pts[3] = geom.add_point([0,10,0],lcar=1)
+	pts[1] = geom.add_point([0,0,0],lcar=1)
+	pts[2] = geom.add_point([10,0,0],lcar=1)
+	pts[3] = geom.add_point([10,10,0],lcar=1)
+	pts[4] = geom.add_point([0,10,0],lcar=1)
+	pts[5] = geom.add_point([10,5,0],lcar=1)
+	pts[6] = geom.add_point([0,5,0],lcar=1)
 	# add line
 	lines = {}
-	lines[0] = geom.add_line(pts[0],pts[1])
 	lines[1] = geom.add_line(pts[1],pts[2])
-	lines[2] = geom.add_line(pts[2],pts[3])
-	lines[3] = geom.add_line(pts[3],pts[0])
+	lines[2] = geom.add_line(pts[2],pts[5])
+	lines[3] = geom.add_line(pts[5],pts[6])
+	lines[4] = geom.add_line(pts[6],pts[1])
+	lines[5] = geom.add_line(pts[5],pts[3])
+	lines[6] = geom.add_line(pts[3],pts[4])
+	lines[7] = geom.add_line(pts[4],pts[6])
 	# add loop_line
 	line_loops = {}
-	line_loops[0] = geom.add_line_loop([lines[0],lines[1],lines[2],lines[3]])
+	line_loops[1] = geom.add_line_loop([lines[1],lines[2],lines[3],lines[4]])
+	line_loops[2] = geom.add_line_loop([-lines[3],lines[5],lines[6],lines[7]])
 	# add surface
 	surfs = {}
-	surfs[0] = geom.add_plane_surface(line_loops[0])
+	surfs[1] = geom.add_plane_surface(line_loops[1])
+	surfs[2] = geom.add_plane_surface(line_loops[2])
 	# add pysical_line
 	physicalLines = {}
-	physicalLines[0] = geom.add_physical_line([lines[0]],label='bd11')
-	physicalLines[1] = geom.add_physical_line([lines[2]],label='bd12')
-	physicalLines[2] = geom.add_physical_line([lines[1],lines[3]],label='bd2')
+	physicalLines[1] = geom.add_physical_line([lines[1]],label='bd11')
+	physicalLines[2] = geom.add_physical_line([lines[6]],label='bd12')
+	physicalLines[3] = geom.add_physical_line([lines[2],lines[4],lines[5],lines[7]],label='bd21')
 	# add pysical_surface
 	phySurfs = {}
-	phySurfs[0] = geom.add_physical_surface([surfs[0]],label='phy1')
+	phySurfs[1] = geom.add_physical_surface([surfs[1]],label='mat1')
+	phySurfs[2] = geom.add_physical_surface([surfs[2]],label='mat2')
 	points, cells, point_data, cell_data, field_data = pg.generate_mesh(geom)
 	# meshing
 	mesh = meshio.Mesh(points,cells,point_data,cell_data,field_data)
@@ -51,29 +59,46 @@ def setModelByCommand(meshPath='theMesh/theMesh.msh'):
 	# print(geom.get_code())
 	return mesh
 	
-def getBoundaries(mesh,alpha=3.,Ts=0):
+def getBoundaries(mesh,bdParams):
 	import numpy as np
+	bds = {}
 	# lines in each class of boundary
-	bd11 = np.array(mesh.cells['line'][mesh.cell_data['line']['gmsh:physical']==1])
-	bd12 = np.array(mesh.cells['line'][mesh.cell_data['line']['gmsh:physical']==2])
-	bd21 = np.array(mesh.cells['line'][mesh.cell_data['line']['gmsh:physical']==3])
-	# nodes in each class of boundary
-	bdNode11 = np.unique(bd11)
-	bdNode12 = np.unique(bd12)
-	bdNode21 = np.unique(bd21)
-	# return a dictionary. 
+	for keyDict in bdParams.keys():
+		if keyDict == 'bd1':
+			alpha = 0.
+		elif keyDict == 'bd2':
+			alpha = 0.
+		tempDict = {}
+		for key in bdParams[keyDict].keys():
+			keyNodes = np.array(mesh.cells['line'][mesh.cell_data['line']['gmsh:physical']==mesh.field_data[key][0]])
+			keyNodes = np.unique(keyNodes)			
+			tempDict[key+'Node'] = keyNodes
+			if keyDict == 'bd3':
+				alpha = bdParams[keyDict][key][0]
+				tempDict[key+'Params'] = [alpha,alpha*bdParams[keyDict][key][1]]
+			else:
+				tempDict[key+'Params'] = [alpha,bdParams[keyDict][key]]
+		bds[keyDict] = tempDict
+	# return a dictionary as the follows 
+	# return {'bd1': {'bdNode11': bdNode11, 'bdT11': [1., 10.], 
+					# 'bdNode12': bdNode12, 'bdT12': [1., 100.]}, 
+			# 'bd2': {'bdNode21': bdNode21, 'bdq21': [0., 0.]}, 
+			# 'bd3': {'bdEx31': [alpha, alpha*Ts]}   # [alpha, alpha*Ts]
+			# }
 	# bd1--1st, T0 
 	# bd2--2nd, q and adiabatic 
-	# bd3--3rd, Ts 
-	# [alpha, beta]
-	return {'bd1': {'bdNode11': bdNode11, 'bdT11': [1., 10.], 
-					'bdNode12': bdNode12, 'bdT12': [1., 100.]}, 
-			'bd2': {'bdNode21': bdNode21, 'bdq21': [0., 0.]}, 
-			'bd3': {'bdEx31': [alpha, alpha*Ts]}   # [alpha, alpha*Ts]
-			}
+	# bd3--3rd, alpha, Ts 
+	return bds
+	
 	
 def getNodes(mesh):
 	return(mesh.points)
 
-def getTriangles(mesh):
-	return(mesh.cells['triangle'])
+def getSurfsWithTrisAndParams(mesh,matParams):
+	import numpy as np
+	# {'mat1':{tris:[],params:[kappa,miu,miuW,vx,vy,Q]},'mat2':{...}}
+	mats = {}
+	for key in matParams.keys():
+		mats[key] = {'tris':mesh.cells['triangle'][mesh.cell_data['triangle']['gmsh:physical']==mesh.field_data[key][0]],
+					'params':matParams[key]}
+	return(mats)

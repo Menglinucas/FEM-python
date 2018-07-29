@@ -13,24 +13,28 @@ def triShapeFunc(nodes,tri):
 	# n3 = [a3/area/2.0, b3/area/2.0, c3/area/2.0] # n3 = L3 = (a3*x+b3*y+c3)/2/area
 	# in postprocess: u = n1u1 + n2u2 + n3u3
 	return x1,x2,x3,y1,y2,y3,a1,a2,a3,b1,b2,b3,c1,c2,c3,delta
-
-def triParams(nodes, bd23Nodes, tri, bds):
+	
+# params1: kappa,miu,miuW,vx,vy,Q; alpha, beita
+def boundParams(tri, bds, bdParams):
 	# whether containing a second or third boundary
 	isB = []; notB = []; eleAlpha = 0.; eleBeita = 0.
-	for i in range(len(tri)):
-		if tri[i] in bd23Nodes:
-			isB.append(i)
-		else:
-			notB.append(i)
-	if (len(isB)==2 and set(tri[isB]).issubset(bds['bd2']['bdNode21'])):
-		eleAlpha = bds['bd2']['bdq21'][0]; eleBeita = bds['bd2']['bdq21'][1]
+	anyTwo = [[0,1],[0,2],[1,2]]
+	for keyDict in bdParams.keys():
+		for key in bdParams[keyDict]:
+			if set(tri[anyTwo[0]]).issubset(bds[keyDict][key+'Node']):
+				isB = anyTwo[0]; eleAlpha, beita = bds[keyDict][key+'Params']
+			elif set(tri[anyTwo[1]]).issubset(bds[keyDict][key+'Node']):
+				isB = anyTwo[1]; eleAlpha, beita = bds[keyDict][key+'Params']
+			elif set(tri[anyTwo[2]]).issubset(bds[keyDict][key+'Node']):
+				isB = anyTwo[2]; eleAlpha, beita = bds[keyDict][key+'Params']
+	notB = list(set([0,1,2])-set(isB))
 	return isB, notB, eleAlpha, eleBeita
 	
 # elementary stiffness
-def eleStiff(nodes,tri,bds,bd23Nodes,eleK,eleMiu,eleMiuW,eleVx,eleVy,Q): 
+def eleStiff(nodes,tri,bds,bdParams,eleK,eleMiu,eleMiuW,eleVx,eleVy,Q): 
 	x1,x2,x3,y1,y2,y3,a1,a2,a3,b1,b2,b3,c1,c2,c3,delta = triShapeFunc(nodes,tri)
-	x = [x1,x2,x3]; y = [y1,y2,y3]	
-	isB, notB, eleAlpha, eleBeita = triParams(nodes, bd23Nodes, tri, bds)
+	x = [x1,x2,x3]; y = [y1,y2,y3]
+	isB, notB, eleAlpha, eleBeita = boundParams(tri, bds, bdParams)
 	# K
 	ke1 = eleK/4./delta*np.array([[a1*a1+b1*b1, a1*a2+b1*b2, a1*a3+b1*b3],
 									[a2*a1+b2*b1, a2*a2+b2*b2, a2*a3+b2*b3],
@@ -60,26 +64,27 @@ def eleStiff(nodes,tri,bds,bd23Nodes,eleK,eleMiu,eleMiuW,eleVx,eleVy,Q):
 	return ke,ge,pe
 
 # total stiffness
-def tolStiff(nodes,tris,bds,kappa,miu,miuW,vx,vy,Q):
+def tolStiff(nodes,mats,bds,bdParams):
 	length = len(nodes)
-	bd23Nodes = np.hstack((bds['bd2']['bdNode21'])) # nodes in the second and third boundaries
 	ktol = np.zeros((length,length))
 	ptol = np.zeros((length,1))
-	for tri in tris:
-		ke,ge,pe = eleStiff(nodes,tri,bds,bd23Nodes,kappa,miu,miuW,vx,vy,Q)
-		ktol[tri[0],tri[0]] = ktol[tri[0],tri[0]]+ke[0,0]
-		ktol[tri[0],tri[1]] = ktol[tri[0],tri[1]]+ke[0,1]
-		ktol[tri[0],tri[2]] = ktol[tri[0],tri[2]]+ke[0,2]
-		ktol[tri[1],tri[0]] = ktol[tri[1],tri[0]]+ke[1,0]
-		ktol[tri[1],tri[1]] = ktol[tri[1],tri[1]]+ke[1,1]
-		ktol[tri[1],tri[2]] = ktol[tri[1],tri[2]]+ke[1,2]
-		ktol[tri[2],tri[0]] = ktol[tri[2],tri[0]]+ke[2,0]
-		ktol[tri[2],tri[1]] = ktol[tri[2],tri[1]]+ke[2,1]
-		ktol[tri[2],tri[2]] = ktol[tri[2],tri[2]]+ke[2,2]
-		ptol[tri[0],0] = ptol[tri[0],0]+pe[0,0]
-		ptol[tri[1],0] = ptol[tri[1],0]+pe[1,0]
-		ptol[tri[2],0] = ptol[tri[2],0]+pe[2,0]
+	for mat in mats.keys():
+		for tri in mats[mat]['tris']:
+			kappa,miu,miuW,vx,vy,Q = mats[mat]['params']
+			ke,ge,pe = eleStiff(nodes,tri,bds,bdParams,kappa,miu,miuW,vx,vy,Q)
+			ktol[tri[0],tri[0]] = ktol[tri[0],tri[0]]+ke[0,0]
+			ktol[tri[0],tri[1]] = ktol[tri[0],tri[1]]+ke[0,1]
+			ktol[tri[0],tri[2]] = ktol[tri[0],tri[2]]+ke[0,2]
+			ktol[tri[1],tri[0]] = ktol[tri[1],tri[0]]+ke[1,0]
+			ktol[tri[1],tri[1]] = ktol[tri[1],tri[1]]+ke[1,1]
+			ktol[tri[1],tri[2]] = ktol[tri[1],tri[2]]+ke[1,2]
+			ktol[tri[2],tri[0]] = ktol[tri[2],tri[0]]+ke[2,0]
+			ktol[tri[2],tri[1]] = ktol[tri[2],tri[1]]+ke[2,1]
+			ktol[tri[2],tri[2]] = ktol[tri[2],tri[2]]+ke[2,2]
+			ptol[tri[0],0] = ptol[tri[0],0]+pe[0,0]
+			ptol[tri[1],0] = ptol[tri[1],0]+pe[1,0]
+			ptol[tri[2],0] = ptol[tri[2],0]+pe[2,0]
 	# add the 1st boundary
-	ptol[bds['bd1']['bdNode11'],0] = bds['bd1']['bdT11'][1]
-	ptol[bds['bd1']['bdNode12'],0] = bds['bd1']['bdT12'][1]
+	for key in bdParams['bd1'].keys():
+		ptol[bds['bd1'][key+'Node'],0] = bds['bd1'][key+'Params'][1]
 	return ktol,ptol
