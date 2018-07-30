@@ -22,11 +22,11 @@ def boundParams(tri, bds, bdParams):
 	for keyDict in bdParams.keys():
 		for key in bdParams[keyDict]:
 			if set(tri[anyTwo[0]]).issubset(bds[keyDict][key+'Node']):
-				isB = anyTwo[0]; eleAlpha, beita = bds[keyDict][key+'Params']
+				isB = anyTwo[0]; eleAlpha, eleBeita = bds[keyDict][key+'Params']
 			elif set(tri[anyTwo[1]]).issubset(bds[keyDict][key+'Node']):
-				isB = anyTwo[1]; eleAlpha, beita = bds[keyDict][key+'Params']
+				isB = anyTwo[1]; eleAlpha, eleBeita = bds[keyDict][key+'Params']
 			elif set(tri[anyTwo[2]]).issubset(bds[keyDict][key+'Node']):
-				isB = anyTwo[2]; eleAlpha, beita = bds[keyDict][key+'Params']
+				isB = anyTwo[2]; eleAlpha, eleBeita = bds[keyDict][key+'Params']
 	notB = list(set([0,1,2])-set(isB))
 	return isB, notB, eleAlpha, eleBeita
 	
@@ -50,7 +50,7 @@ def eleStiff(nodes,tri,bds,bdParams,eleK,eleMiu,eleMiuW,eleVx,eleVy,Q):
 	pe2 = np.zeros((3,1))
 	# deal with the boundary
 	if len(isB) == 2:
-		ke3 = eleAlpha/3.*np.sqrt((x[isB[1]]-x[isB[0]])**2+(y[isB[1]]-y[isB[0]])**2)*np.array([[2,1,1],
+		ke3 = eleAlpha/6.*np.sqrt((x[isB[1]]-x[isB[0]])**2+(y[isB[1]]-y[isB[0]])**2)*np.array([[2,1,1],
 																								[1,2,1],
 																								[1,1,2]])
 		ke3[notB[0],:] = 0; ke3[:,notB[0]] = 0
@@ -85,6 +85,7 @@ def tolStiff(nodes,mats,bds,bdParams):
 			ptol[tri[1],0] = ptol[tri[1],0]+pe[1,0]
 			ptol[tri[2],0] = ptol[tri[2],0]+pe[2,0]
 	# add the 1st boundary
-	for key in bdParams['bd1'].keys():
-		ptol[bds['bd1'][key+'Node'],0] = bds['bd1'][key+'Params'][1]
+	if 'bd1' in bdParams.keys():
+		for key in bdParams['bd1'].keys():
+			ptol[bds['bd1'][key+'Node'],0] = bds['bd1'][key+'Params'][1]
 	return ktol,ptol

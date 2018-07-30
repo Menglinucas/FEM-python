@@ -46,7 +46,8 @@ def setModelByCommand(meshPath='theMesh/theMesh.msh'):
 	physicalLines = {}
 	physicalLines[1] = geom.add_physical_line([lines[1]],label='bd11')
 	physicalLines[2] = geom.add_physical_line([lines[6]],label='bd12')
-	physicalLines[3] = geom.add_physical_line([lines[2],lines[4],lines[5],lines[7]],label='bd21')
+	physicalLines[3] = geom.add_physical_line([lines[2],lines[5]],label='bd21')
+	physicalLines[4] = geom.add_physical_line([lines[4],lines[7]],label='bd31')
 	# add pysical_surface
 	phySurfs = {}
 	phySurfs[1] = geom.add_physical_surface([surfs[1]],label='mat1')
@@ -80,13 +81,13 @@ def getBoundaries(mesh,bdParams):
 				tempDict[key+'Params'] = [alpha,bdParams[keyDict][key]]
 		bds[keyDict] = tempDict
 	# return a dictionary as the follows 
-	# return {'bd1': {'bdNode11': bdNode11, 'bdT11': [1., 10.], 
-					# 'bdNode12': bdNode12, 'bdT12': [1., 100.]}, 
-			# 'bd2': {'bdNode21': bdNode21, 'bdq21': [0., 0.]}, 
+	# return {'bd1': {'bdNode11': bdNode11, 'bdT11': [0., T1], 
+					# 'bdNode12': bdNode12, 'bdT12': [0., T2]}, 
+			# 'bd2': {'bdNode21': bdNode21, 'bdq21': [0., q]}, 
 			# 'bd3': {'bdEx31': [alpha, alpha*Ts]}   # [alpha, alpha*Ts]
 			# }
 	# bd1--1st, T0 
-	# bd2--2nd, q and adiabatic 
+	# bd2--2nd, q and adiabatic (q=0)
 	# bd3--3rd, alpha, Ts 
 	return bds
 	

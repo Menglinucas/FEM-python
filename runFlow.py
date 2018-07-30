@@ -20,16 +20,13 @@ def main():
 	# beita --- a parameter
 	
 	# materials
-	matParams = {'mat1':[3.,3000.,10000.,1e-4,1e-4,1.2e-6],
-				'mat2':[10.,3000.,10000.,0,0,0]}
+	matParams = {'mat1':[3.,3000.,10000.,0.,0.,0],
+				'mat2':[3.,3000.,10000.,0.,0.,0]}
 	# boundaries
 	bdParams = {'bd1':{'bd11':10.,
 						'bd12':100.},
-				'bd2':{'bd21':0.}}
-	# bdParams = {'bd1':{'bd11':10.,
-						# 'bd12':100.},
-				# 'bd2':{'bd21':0.},
-				# 'bd3':{'bd31':[3.,0.]}}
+				'bd2':{'bd21':0.},
+				'bd3':{'bd31':[3.,100.]}}
 
 	# (2) generate mesh (command or interface)
 	mesh = prep.setModelByCommand(meshPath='theMesh/theMesh.msh')
