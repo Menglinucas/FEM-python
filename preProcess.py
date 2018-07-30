@@ -60,7 +60,7 @@ def setModelByCommand(meshPath='theMesh/theMesh.msh'):
 	# print(geom.get_code())
 	return mesh
 	
-def getBoundaries(mesh,bdParams):
+def getBoundaries(mesh,bdParams,bd1Points=False):
 	import numpy as np
 	bds = {}
 	# lines in each class of boundary
@@ -71,14 +71,15 @@ def getBoundaries(mesh,bdParams):
 			alpha = 0.
 		tempDict = {}
 		for key in bdParams[keyDict].keys():
+			if key == 'bdpts': continue
 			keyNodes = np.array(mesh.cells['line'][mesh.cell_data['line']['gmsh:physical']==mesh.field_data[key][0]])
 			keyNodes = np.unique(keyNodes)			
 			tempDict[key+'Node'] = keyNodes
 			if keyDict == 'bd3':
 				alpha = bdParams[keyDict][key][0]
-				tempDict[key+'Params'] = [alpha,alpha*bdParams[keyDict][key][1]]
+				tempDict[key+'Params'] = np.array([alpha,alpha*bdParams[keyDict][key][1]])
 			else:
-				tempDict[key+'Params'] = [alpha,bdParams[keyDict][key]]
+				tempDict[key+'Params'] = np.array([alpha,bdParams[keyDict][key]])
 		bds[keyDict] = tempDict
 	# return a dictionary as the follows 
 	# return {'bd1': {'bdNode11': bdNode11, 'bdT11': [0., T1], 
@@ -89,6 +90,20 @@ def getBoundaries(mesh,bdParams):
 	# bd1--1st, T0 
 	# bd2--2nd, q and adiabatic (q=0)
 	# bd3--3rd, alpha, Ts 
+	# points in bd1
+	# points = [[2.5,2.5,200.],[9.5,7.5,300.]]
+	if bdParams.__contains__('bd1'):
+		if bdParams['bd1'].__contains__('bdpts'):
+			minDistNums = []
+			for point in bdParams['bd1']['bdpts']:
+				minDist = np.inf
+				for i,element in enumerate(mesh.points):
+					pDist = (element[0]-point[0])**2+(element[1]-point[1])**2
+					if pDist < minDist:
+						minDist = pDist; nodeNum = i
+				minDistNums.append(nodeNum)
+			bds['bd1']['bdptsNode'] = np.array(minDistNums)
+			bds['bd1']['bdptsValue'] = np.array(bdParams['bd1']['bdpts'])[:,-1]
 	return bds
 	
 	

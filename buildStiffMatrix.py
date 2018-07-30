@@ -21,6 +21,7 @@ def boundParams(tri, bds, bdParams):
 	anyTwo = [[0,1],[0,2],[1,2]]
 	for keyDict in bdParams.keys():
 		for key in bdParams[keyDict]:
+			if key == 'bdpts': continue
 			if set(tri[anyTwo[0]]).issubset(bds[keyDict][key+'Node']):
 				isB = anyTwo[0]; eleAlpha, eleBeita = bds[keyDict][key+'Params']
 			elif set(tri[anyTwo[1]]).issubset(bds[keyDict][key+'Node']):
@@ -87,5 +88,8 @@ def tolStiff(nodes,mats,bds,bdParams):
 	# add the 1st boundary
 	if 'bd1' in bdParams.keys():
 		for key in bdParams['bd1'].keys():
-			ptol[bds['bd1'][key+'Node'],0] = bds['bd1'][key+'Params'][1]
+			if key == 'bdpts':
+				ptol[bds['bd1'][key+'Node'],0] = bds['bd1'][key+'Value']
+			else:
+				ptol[bds['bd1'][key+'Node'],0] = bds['bd1'][key+'Params'][1]
 	return ktol,ptol

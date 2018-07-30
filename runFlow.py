@@ -19,14 +19,15 @@ def main():
 	# qhf --- heat flow
 	# beita --- a parameter
 	
-	# materials
-	matParams = {'mat1':[3.,3000.,10000.,0.,0.,0.],
-				'mat2':[3.,3000.,10000.,0.,0.,0.]}
+	# materials, [kappa, miu, miuW, vx, vy, Q]
+	matParams = {'mat1':[2.,3000.,0.,0.,0.,1.e-3],
+				'mat2':[3.,3000.,10000.,1.e-4,1.e-4,0.]}
 	# boundaries
 	bdParams = {'bd1':{'bd11':0.,
-						'bd12':100.},
-				'bd2':{'bd21':0.},
-				'bd3':{'bd31':[0.,0.]}}
+						'bd12':100.,    # T
+						'bdpts':[[2.5,2.5,90],[7.5,7.5,10]]},   # [[x,y,T],...]
+				'bd2':{'bd21':50.},         # q
+				'bd3':{'bd31':[3.,100.]}}  # [alpha, beita]
 
 	# (2) generate mesh (command or interface)
 	mesh = prep.setModelByCommand(meshPath='theMesh/theMesh.msh')
