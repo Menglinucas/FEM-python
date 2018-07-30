@@ -20,13 +20,13 @@ def main():
 	# beita --- a parameter
 	
 	# materials
-	matParams = {'mat1':[3.,3000.,10000.,0.,0.,0],
-				'mat2':[3.,3000.,10000.,0.,0.,0]}
+	matParams = {'mat1':[3.,3000.,10000.,0.,0.,0.],
+				'mat2':[3.,3000.,10000.,0.,0.,0.]}
 	# boundaries
-	bdParams = {'bd1':{'bd11':10.,
+	bdParams = {'bd1':{'bd11':0.,
 						'bd12':100.},
 				'bd2':{'bd21':0.},
-				'bd3':{'bd31':[3.,100.]}}
+				'bd3':{'bd31':[0.,0.]}}
 
 	# (2) generate mesh (command or interface)
 	mesh = prep.setModelByCommand(meshPath='theMesh/theMesh.msh')
@@ -50,7 +50,7 @@ def main():
 	##########################################################################
 	############################# 4. postprocess #############################
 	########################################################################## 
-	postp.drawHeat(x=nodes[:,0],y=nodes[:,1],z=T)
+	postp.drawHeatByRbf(nodes=nodes,values=T)
 	
 if __name__ == '__main__':
 	main()
