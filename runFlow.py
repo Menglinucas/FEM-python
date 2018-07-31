@@ -1,7 +1,10 @@
 def main():
+	import numpy as np
 	import preProcess as prep
 	import buildStiffMatrix as bsm
-	import solveEquation as solEq
+	import solveStatic as solS
+	import initT
+	import solveTransient as solT
 	import postProcess as postp
 
 	##########################################################################
@@ -21,13 +24,13 @@ def main():
 	
 	# materials, [kappa, miu, miuW, vx, vy, Q]
 	matParams = {'mat1':[2.,3000.,0.,0.,0.,1.e-3],
-				'mat2':[3.,3000.,10000.,1.e-4,1.e-4,0.]}
+				'mat2':[3.,3000.,10000.,0.e-4,0.e-4,0.]}
 	# boundaries
 	bdParams = {'bd1':{'bd11':0.,
 						'bd12':100.,    # T
 						'bdpts':[[2.5,2.5,90],[7.5,7.5,10]]},   # [[x,y,T],...]
-				'bd2':{'bd21':50.},         # q
-				'bd3':{'bd31':[3.,100.]}}  # [alpha, beita]
+				'bd2':{'bd21':10.},         # q
+				'bd3':{'bd31':[0.,0.]}}  # [alpha, beita]
 
 	# (2) generate mesh (command or interface)
 	mesh = prep.setModelByCommand(meshPath='theMesh/theMesh.msh')
@@ -41,13 +44,18 @@ def main():
 	##########################################################################
 	######################## 2. build stiffness matrix #######################
 	##########################################################################
-	ktol,ptol = bsm.tolStiff(nodes,mats,bds,bdParams)
-
+	ktol,gtol,ptol = bsm.tolStiff(nodes,mats,bds,bdParams)
+	
 	##########################################################################
 	######################## 3. solve linear equations #######################
 	##########################################################################
-	T = solEq.useScipy(ktol,ptol,bds,bdParams)
-
+	# static
+	# T = solS.useScipy(ktol,ptol,bds,bdParams)
+	
+	# transient
+	T0 = initT.initToBeZero(nodes)
+	T = solT.useScipy(ktol,gtol,ptol,bds,bdParams,T0,tStart=0.,tEnd=1.e2,dt=1.0e1)
+	
 	##########################################################################
 	############################# 4. postprocess #############################
 	########################################################################## 

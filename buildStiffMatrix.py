@@ -68,6 +68,7 @@ def eleStiff(nodes,tri,bds,bdParams,eleK,eleMiu,eleMiuW,eleVx,eleVy,Q):
 def tolStiff(nodes,mats,bds,bdParams):
 	length = len(nodes)
 	ktol = np.zeros((length,length))
+	gtol = np.zeros((length,length))
 	ptol = np.zeros((length,1))
 	for mat in mats.keys():
 		for tri in mats[mat]['tris']:
@@ -82,14 +83,16 @@ def tolStiff(nodes,mats,bds,bdParams):
 			ktol[tri[2],tri[0]] = ktol[tri[2],tri[0]]+ke[2,0]
 			ktol[tri[2],tri[1]] = ktol[tri[2],tri[1]]+ke[2,1]
 			ktol[tri[2],tri[2]] = ktol[tri[2],tri[2]]+ke[2,2]
+			gtol[tri[0],tri[0]] = gtol[tri[0],tri[0]]+ke[0,0]
+			gtol[tri[0],tri[1]] = gtol[tri[0],tri[1]]+ke[0,1]
+			gtol[tri[0],tri[2]] = gtol[tri[0],tri[2]]+ke[0,2]
+			gtol[tri[1],tri[0]] = gtol[tri[1],tri[0]]+ke[1,0]
+			gtol[tri[1],tri[1]] = gtol[tri[1],tri[1]]+ke[1,1]
+			gtol[tri[1],tri[2]] = gtol[tri[1],tri[2]]+ke[1,2]
+			gtol[tri[2],tri[0]] = gtol[tri[2],tri[0]]+ke[2,0]
+			gtol[tri[2],tri[1]] = gtol[tri[2],tri[1]]+ke[2,1]
+			gtol[tri[2],tri[2]] = gtol[tri[2],tri[2]]+ke[2,2]
 			ptol[tri[0],0] = ptol[tri[0],0]+pe[0,0]
 			ptol[tri[1],0] = ptol[tri[1],0]+pe[1,0]
 			ptol[tri[2],0] = ptol[tri[2],0]+pe[2,0]
-	# add the 1st boundary
-	if 'bd1' in bdParams.keys():
-		for key in bdParams['bd1'].keys():
-			if key == 'bdpts':
-				ptol[bds['bd1'][key+'Node'],0] = bds['bd1'][key+'Value']
-			else:
-				ptol[bds['bd1'][key+'Node'],0] = bds['bd1'][key+'Params'][1]
-	return ktol,ptol
+	return ktol,gtol,ptol
