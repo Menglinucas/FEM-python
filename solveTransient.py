@@ -34,7 +34,7 @@ def useScipy(nodes,ktol,gtol,ptol,bds,bdParams,T0,tStart,tEnd,dt):
 		z = T
 		z = np.reshape(z,(len(z)))
 		gridz = griddata(nodes[:,0:2],z,(gridx,gridy),method='linear')
-		plt.title(str((t+dt)/3.1536e13)+'Ma')
+		plt.title(str(t/3.1536e13)+'Ma')
 		plt.imshow(gridz.T,extent=(np.min(x),np.max(x),np.min(y),np.max(y)),origin='lower',cmap=cm.jet)
 		plt.pause(0.01)
 		plt.cla()
