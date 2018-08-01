@@ -1,4 +1,4 @@
-def main():
+def main(trans=False,tStart=0.,tEnd=1.0e14,dt=1.0e13):
 	import numpy as np
 	import preProcess as prep
 	import buildStiffMatrix as bsm
@@ -23,14 +23,14 @@ def main():
 	# beita --- a parameter
 	
 	# materials, [kappa, miu, miuW, vx, vy, Q]
-	matParams = {'mat1':[2.,3000.,0.,0.,0.,1.e-3],
-				'mat2':[3.,3000.,10000.,0.e-4,0.e-4,0.]}
+	matParams = {'mat1':[2.7,3.e6,0.,1./100./24./3600.,1./100./24./3600.,1.e-4],
+				'mat2':[3.2,3.e6,5.e6,0.,0.,0.]}
 	# boundaries
-	bdParams = {'bd1':{'bd11':0.,
-						'bd12':100.,    # T
-						'bdpts':[[2.5,2.5,90],[7.5,7.5,10]]},   # [[x,y,T],...]
-				'bd2':{'bd21':10.},         # q
-				'bd3':{'bd31':[0.,0.]}}  # [alpha, beita]
+	bdParams = {'bd1':{'bd11':1200.,
+						'bd12':0.,    # T
+						'bdpts':[[2.5e3,2.5e3,100],[7.5e3,7.5e3,900]]},   # [[x,y,T],...]
+				'bd2':{'bd21':0.1},         # q
+				'bd3':{'bd31':[3.,1200.]}}  # [alpha, beita]
 
 	# (2) generate mesh (command or interface)
 	mesh = prep.setModelByCommand(meshPath='theMesh/theMesh.msh')
@@ -49,12 +49,13 @@ def main():
 	##########################################################################
 	######################## 3. solve linear equations #######################
 	##########################################################################
-	# static
-	# T = solS.useScipy(ktol,ptol,bds,bdParams)
-	
-	# transient
-	T0 = initT.initToBeZero(nodes)
-	T = solT.useScipy(ktol,gtol,ptol,bds,bdParams,T0,tStart=0.,tEnd=1.e2,dt=1.0e1)
+	if trans == False:
+		# static
+		T = solS.useScipy(ktol,ptol,bds,bdParams)
+	else:
+		# transient
+		T0 = initT.initToBeZero(nodes,bds,bdParams)
+		T = solT.useScipy(ktol,gtol,ptol,bds,bdParams,T0,tStart=tStart,tEnd=tEnd,dt=dt)
 	
 	##########################################################################
 	############################# 4. postprocess #############################

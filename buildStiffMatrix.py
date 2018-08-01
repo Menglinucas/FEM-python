@@ -20,8 +20,10 @@ def boundParams(tri, bds, bdParams):
 	isB = []; notB = []; eleAlpha = 0.; eleBeita = 0.
 	anyTwo = [[0,1],[0,2],[1,2]]
 	for keyDict in bdParams.keys():
+		if keyDict == 'bd1': 
+			notB = [0,1,2]
+			continue
 		for key in bdParams[keyDict]:
-			if key == 'bdpts': continue
 			if set(tri[anyTwo[0]]).issubset(bds[keyDict][key+'Node']):
 				isB = anyTwo[0]; eleAlpha, eleBeita = bds[keyDict][key+'Params']
 			elif set(tri[anyTwo[1]]).issubset(bds[keyDict][key+'Node']):
@@ -49,7 +51,7 @@ def eleStiff(nodes,tri,bds,bdParams,eleK,eleMiu,eleMiuW,eleVx,eleVy,Q):
 								[1,1,2]])
 	pe1 = Q*delta/3.*np.ones((3,1))
 	pe2 = np.zeros((3,1))
-	# deal with the boundary
+	# deal with the 2/3 boundary
 	if len(isB) == 2:
 		ke3 = eleAlpha/6.*np.sqrt((x[isB[1]]-x[isB[0]])**2+(y[isB[1]]-y[isB[0]])**2)*np.array([[2,1,1],
 																								[1,2,1],
@@ -83,15 +85,15 @@ def tolStiff(nodes,mats,bds,bdParams):
 			ktol[tri[2],tri[0]] = ktol[tri[2],tri[0]]+ke[2,0]
 			ktol[tri[2],tri[1]] = ktol[tri[2],tri[1]]+ke[2,1]
 			ktol[tri[2],tri[2]] = ktol[tri[2],tri[2]]+ke[2,2]
-			gtol[tri[0],tri[0]] = gtol[tri[0],tri[0]]+ke[0,0]
-			gtol[tri[0],tri[1]] = gtol[tri[0],tri[1]]+ke[0,1]
-			gtol[tri[0],tri[2]] = gtol[tri[0],tri[2]]+ke[0,2]
-			gtol[tri[1],tri[0]] = gtol[tri[1],tri[0]]+ke[1,0]
-			gtol[tri[1],tri[1]] = gtol[tri[1],tri[1]]+ke[1,1]
-			gtol[tri[1],tri[2]] = gtol[tri[1],tri[2]]+ke[1,2]
-			gtol[tri[2],tri[0]] = gtol[tri[2],tri[0]]+ke[2,0]
-			gtol[tri[2],tri[1]] = gtol[tri[2],tri[1]]+ke[2,1]
-			gtol[tri[2],tri[2]] = gtol[tri[2],tri[2]]+ke[2,2]
+			gtol[tri[0],tri[0]] = gtol[tri[0],tri[0]]+ge[0,0]
+			gtol[tri[0],tri[1]] = gtol[tri[0],tri[1]]+ge[0,1]
+			gtol[tri[0],tri[2]] = gtol[tri[0],tri[2]]+ge[0,2]
+			gtol[tri[1],tri[0]] = gtol[tri[1],tri[0]]+ge[1,0]
+			gtol[tri[1],tri[1]] = gtol[tri[1],tri[1]]+ge[1,1]
+			gtol[tri[1],tri[2]] = gtol[tri[1],tri[2]]+ge[1,2]
+			gtol[tri[2],tri[0]] = gtol[tri[2],tri[0]]+ge[2,0]
+			gtol[tri[2],tri[1]] = gtol[tri[2],tri[1]]+ge[2,1]
+			gtol[tri[2],tri[2]] = gtol[tri[2],tri[2]]+ge[2,2]
 			ptol[tri[0],0] = ptol[tri[0],0]+pe[0,0]
 			ptol[tri[1],0] = ptol[tri[1],0]+pe[1,0]
 			ptol[tri[2],0] = ptol[tri[2],0]+pe[2,0]

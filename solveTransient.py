@@ -4,6 +4,7 @@ def useScipy(ktol,gtol,ptol,bds,bdParams,T0,tStart=0.,tEnd=10.e4,dt=1.0e4):
 
 	t = tStart
 	while t <= tEnd:
+		print(t)
 		leftArray = 2./3.*ktol+gtol/dt
 		rightArray = ptol-np.dot((1./3.*ktol-gtol/dt),T0)
 		# add the 1st boundary

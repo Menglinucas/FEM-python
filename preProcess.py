@@ -19,12 +19,12 @@ def setModelByCommand(meshPath='theMesh/theMesh.msh'):
 	geom = pg.built_in.Geometry()
 	# add point
 	pts = {}
-	pts[1] = geom.add_point([0,0,0],lcar=1)
-	pts[2] = geom.add_point([10,0,0],lcar=1)
-	pts[3] = geom.add_point([10,10,0],lcar=1)
-	pts[4] = geom.add_point([0,10,0],lcar=1)
-	pts[5] = geom.add_point([10,5,0],lcar=1)
-	pts[6] = geom.add_point([0,5,0],lcar=1)
+	pts[1] = geom.add_point([0,0,0],lcar=5e2)
+	pts[2] = geom.add_point([10e3,0,0],lcar=5e2)
+	pts[3] = geom.add_point([10e3,10e3,0],lcar=5e2)
+	pts[4] = geom.add_point([0,10e3,0],lcar=5e2)
+	pts[5] = geom.add_point([10e3,5e3,0],lcar=5e2)
+	pts[6] = geom.add_point([0,5e3,0],lcar=5e2)
 	# add line
 	lines = {}
 	lines[1] = geom.add_line(pts[1],pts[2])
@@ -60,7 +60,7 @@ def setModelByCommand(meshPath='theMesh/theMesh.msh'):
 	# print(geom.get_code())
 	return mesh
 	
-def getBoundaries(mesh,bdParams,bd1Points=False):
+def getBoundaries(mesh,bdParams):
 	import numpy as np
 	bds = {}
 	# lines in each class of boundary
@@ -78,12 +78,15 @@ def getBoundaries(mesh,bdParams,bd1Points=False):
 			if keyDict == 'bd3':
 				alpha = bdParams[keyDict][key][0]
 				tempDict[key+'Params'] = np.array([alpha,alpha*bdParams[keyDict][key][1]])
+			elif keyDict == 'bd1':
+				tempDict[key+'Params'] = np.array([0.,0.])
 			else:
-				tempDict[key+'Params'] = np.array([alpha,bdParams[keyDict][key]])
+				tempDict[key+'Params'] = np.array([0.,bdParams[keyDict][key]])
 		bds[keyDict] = tempDict
 	# return a dictionary as the follows 
-	# return {'bd1': {'bdNode11': bdNode11, 'bdT11': [0., T1], 
-					# 'bdNode12': bdNode12, 'bdT12': [0., T2]}, 
+	# return {'bd1': {'bdNode11': bdNode11, 'bdT11': [0., 0], 
+					# 'bdNode12': bdNode12, 'bdT12': [0., 0],
+					# 'bdptsNodes': bdptsNodes', 'bdptsValue': [T1,T2,...]}, 
 			# 'bd2': {'bdNode21': bdNode21, 'bdq21': [0., q]}, 
 			# 'bd3': {'bdEx31': [alpha, alpha*Ts]}   # [alpha, alpha*Ts]
 			# }

@@ -20,15 +20,15 @@ def drawHeatByRbf(nodes,values):
 	import matplotlib.pyplot as plt
 	import numpy as np
 	x = nodes[:,0]; y = nodes[:,1]; z = values
-	gridx = np.linspace(0,10,200)
-	gridy = np.linspace(0,10,200)
+	gridx = np.linspace(np.min(x),np.max(x),200)
+	gridy = np.linspace(np.min(y),np.max(y),200)
 	XI,YI = np.meshgrid(gridx,gridy)
 	rbf = Rbf(x,y,z,epsilon=2)
 	ZI = rbf(XI,YI)
 	plt.subplot(1,1,1)
 	plt.pcolor(XI,YI,ZI,cmap=cm.jet)
 	plt.title('FEM test')
-	plt.xlim(0,10)
-	plt.ylim(0.10)
+	plt.xlim(np.min(x),np.max(x))
+	plt.ylim(np.min(y),np.max(y))
 	plt.colorbar()
 	plt.show()
