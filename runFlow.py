@@ -1,4 +1,4 @@
-def main(trans=False,tStart=0.,tEnd=1.0e14,dt=1.0e13):
+def main(trans=False,tStart=0.,tEnd=3.1536e13,dt=3.1536e10):
 	import numpy as np
 	import preProcess as prep
 	import buildStiffMatrix as bsm
@@ -55,7 +55,7 @@ def main(trans=False,tStart=0.,tEnd=1.0e14,dt=1.0e13):
 	else:
 		# transient
 		T0 = initT.initToBeZero(nodes,bds,bdParams)
-		T = solT.useScipy(ktol,gtol,ptol,bds,bdParams,T0,tStart=tStart,tEnd=tEnd,dt=dt)
+		T = solT.useScipy(nodes,ktol,gtol,ptol,bds,bdParams,T0,tStart=tStart,tEnd=tEnd,dt=dt)
 	
 	##########################################################################
 	############################# 4. postprocess #############################
