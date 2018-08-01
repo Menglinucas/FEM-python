@@ -37,6 +37,7 @@ def useScipy(nodes,ktol,gtol,ptol,bds,bdParams,T0,tStart,tEnd,dt):
 		plt.title(str((t+dt)/3.1536e13)+'Ma')
 		plt.imshow(gridz.T,extent=(np.min(x),np.max(x),np.min(y),np.max(y)),origin='lower',cmap=cm.jet)
 		plt.pause(0.01)
+		plt.cla()
 		# T = np.dot(np.linalg.inv(2./3.*ktol+gtol/dt),np.dot(ptol-(1./3.*ktol-gtol/dt),T0))
 		T0 = T
 		t = t+dt
