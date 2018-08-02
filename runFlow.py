@@ -51,7 +51,7 @@ def main(trans=False,tStart=0.,tEnd=3.1536e13,dt=3.1536e10):
 	##########################################################################
 	if trans == False:
 		# static
-		T = solS.useScipy(ktol,ptol,bds,bdParams)
+		T = solS.useScipy(ktol,ptol,bds,bdParams)	
 	else:
 		# transient
 		T0 = initT.initToBeZero(nodes,bds,bdParams)
