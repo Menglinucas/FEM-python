@@ -109,7 +109,6 @@ def getBoundaries(mesh,bdParams):
 			bds['bd1']['bdptsValue'] = np.array(bdParams['bd1']['bdpts'])[:,-1]
 	return bds
 	
-	
 def getNodes(mesh):
 	return(mesh.points)
 
